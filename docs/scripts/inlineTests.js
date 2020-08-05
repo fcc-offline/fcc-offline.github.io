@@ -1,7 +1,8 @@
 
 function InlineTest({
     testSelector,
-    target
+    target,
+    docHTML
 }) {
 
     let testTarget = document.querySelector(testSelector); // should be a ul
@@ -16,7 +17,7 @@ function InlineTest({
     }
 
     const _doc = target.nodeName === "#document" ? target : target.ownerDocument;
-    const _docHTML = _doc.documentElement.outerHTML;
+    const _docHTML = docHTML !== undefined ? docHTML : _doc.documentElement.outerHTML;
 
     // Variants
     // - innerText(selector)
@@ -111,7 +112,7 @@ function InlineTest({
         let innerHTML = target.innerHTML.toLowerCase();
         Array.from(arguments).some((text, i) => {
             currentIndex = innerHTML.indexOf(`<${text}>`);
-            if (currentIndex < lastIndex) {
+            if (currentIndex === -1 || currentIndex < lastIndex) {
                 ordered = false;
             } else {
                 lastIndex = currentIndex;
@@ -140,8 +141,16 @@ function InlineTest({
         let ordered = true;
         let lastIndex = -1, currentIndex = -1;
         let log = ``;
-        let innerHTML = target.innerHTML.toLowerCase();
-        Array.from(arguments).some((text, i) => {
+        let args = Array.from(arguments);
+        let useDocHTML = false;
+
+        if (typeof args[0] === "boolean") {
+            useDocHTML = args.shift();
+        }
+
+        let innerHTML = (useDocHTML ? docHTML : target.innerHTML).toLowerCase();
+
+        args.some((text, i) => {
             let checkText = cleanup(text).toLowerCase();
             currentIndex = innerHTML.indexOf(checkText);
             log += `-- ${checkText} (${currentIndex})\n`
@@ -174,7 +183,7 @@ function InlineTest({
     function docCountHTML(input) {
         let checkText = cleanup(input).toLowerCase();
         let matches = _docHTML.toLowerCase().match(new RegExp(checkText, 'g'));
-        console.log("docCountHTML", matches, checkText);
+        console.log("docCountHTML", matches, checkText, _docHTML);
         return matches ? matches.length : 0;
     }
 
@@ -189,7 +198,7 @@ function InlineTest({
             let checkText = cleanup(text).toLowerCase();
             currentIndex = innerHTML.indexOf(checkText);
             log += `-- ${checkText} (${currentIndex})\n`
-            if (currentIndex < lastIndex) {
+            if (currentIndex === -1 || currentIndex < lastIndex) {
                 ordered = false;
             } else {
                 lastIndex = currentIndex;

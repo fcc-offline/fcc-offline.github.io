@@ -7,7 +7,10 @@ const cf = new CodeFlask("#ffc-editor", {
 const viewer = document.querySelector(".fcc-viewer");
 const frameDocument = viewer.contentDocument;
 
+let currentCode = ``;
+
 cf.onUpdate(code => {
+
   if (!asIframe) {
     code = `<!DOCTYPE html>
       <html>
@@ -15,6 +18,7 @@ cf.onUpdate(code => {
       </html>
       `
   }
+  currentCode = code;
   frameDocument.open();
   frameDocument.write(code);
   frameDocument.close();
@@ -26,7 +30,8 @@ if (InlineTest) {
   function startTest() {
     InlineTest({
       testSelector: ".fcc-content > ul",
-      target: frameDocument,
+      target: frameDocument.body,
+      docHTML: currentCode
     });
   }
   testBtn.addEventListener("click", startTest);
